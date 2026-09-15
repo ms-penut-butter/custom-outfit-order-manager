@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "test": "jest",
     "start": "next start",
     "lint": "next lint"
   },
@@ -14,9 +15,12 @@
     "react-dom": "latest"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "jest": "^30.5.1",
+    "ts-jest": "^29.4.12",
     "typescript": "latest"
   }
 }

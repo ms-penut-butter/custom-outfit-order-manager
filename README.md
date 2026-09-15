@@ -15,7 +15,7 @@ Currently being implemented:
 
 - Persisting data to a database
 - UI flows for managing customers and orders
-- Automated tests
+- Additional automated tests
 - Authentication
 
 ## Tech Stack
@@ -23,3 +23,13 @@ Currently being implemented:
 - Next.js
 - React
 - TypeScript
+
+## Testing
+
+The domain layer has unit tests written with Jest and ts-jest.
+
+Run the tests with:
+
+```bash
+npm test
+```
