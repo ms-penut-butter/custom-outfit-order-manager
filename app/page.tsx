@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const orders = [
   {
     id: "ORD-1048",
@@ -40,7 +42,9 @@ export default function Home() {
             activity visible from one focused workspace.
           </p>
         </div>
-        <button className="primaryButton">Create Order</button>
+        <Link className="primaryButton" href="/create-order">
+          Create Order
+        </Link>
       </section>
 
       <section className="metrics" aria-label="Order metrics">
