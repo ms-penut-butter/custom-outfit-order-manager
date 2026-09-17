@@ -35,6 +35,11 @@ button {
   font: inherit;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -205,6 +210,58 @@ h1 {
   font-size: 1rem;
 }
 
+.stepList {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepButton {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--foreground);
+  padding: 12px;
+  text-align: left;
+}
+
+.stepButton[aria-current="step"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.stepNumber {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.stepButton strong,
+.stepButton small {
+  display: block;
+}
+
+.stepButton strong {
+  margin-bottom: 2px;
+}
+
+.stepButton small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 .mutedText {
   margin-bottom: 0;
   color: var(--muted);
@@ -213,6 +270,23 @@ h1 {
 
 .orderForm {
   padding: 22px;
+}
+
+.inlinePanel {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  padding: 16px;
+}
+
+.inlinePanel + form,
+.inlinePanel + .inlinePanel {
+  margin-top: 18px;
+}
+
+.inlinePanel h3 {
+  margin-bottom: 14px;
+  font-size: 1rem;
 }
 
 fieldset {
@@ -284,8 +358,13 @@ textarea {
 
 .actions {
   display: flex;
+  gap: 12px;
   justify-content: flex-end;
   margin-top: 18px;
+}
+
+.splitActions {
+  justify-content: space-between;
 }
 
 .successMessage {
@@ -313,6 +392,33 @@ textarea {
 .orderItemGroup h3 {
   margin: 0;
   font-size: 1rem;
+}
+
+.reviewGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.summaryList {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.summaryList div {
+  display: grid;
+  gap: 3px;
+}
+
+.summaryList dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.summaryList dd {
+  margin: 0;
 }
 
 .modalBackdrop {
@@ -428,8 +534,18 @@ mark {
   }
 
   .formLayout,
-  .formGrid {
+  .formGrid,
+  .reviewGrid {
     grid-template-columns: 1fr;
+  }
+
+  .splitActions {
+    flex-direction: column-reverse;
+  }
+
+  .actions .primaryButton,
+  .actions .secondaryButton {
+    width: 100%;
   }
 
   .orderForm,
