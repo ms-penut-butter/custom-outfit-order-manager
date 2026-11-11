@@ -15,7 +15,21 @@ export default function CreateOrderPage() {
         <h1>New custom outfit order</h1>
       </section>
 
-      <CreateOrderFlow />
+      <CreateOrderFlow
+        businessDetails={{
+          // Temporary local context until business settings are available.
+          id: "local-business",
+          name: "Order Management",
+          description: "",
+          address: {
+            streetLine1: "",
+            city: "",
+            stateOrProvince: "",
+            postalCode: "",
+            country: "Canada",
+          },
+        }}
+      />
     </main>
   );
 }

@@ -1,10 +1,11 @@
 import type { FormEvent } from "react";
 import type { Customer } from "@/domain/customer";
+import type { Order } from "@/domain/order";
 import type { CreateOrderFormModel } from "./create-order-form-model";
 import { toNumber } from "./create-order-mappers";
 
 type ReviewOrderStepProps = {
-  createdOrderId: string;
+  createdOrder: Order | null;
   onBack: () => void;
   onCreateOrder: (event: FormEvent<HTMLFormElement>) => void;
   orderForm: CreateOrderFormModel;
@@ -12,7 +13,7 @@ type ReviewOrderStepProps = {
 };
 
 export function ReviewOrderStep({
-  createdOrderId,
+  createdOrder,
   onBack,
   onCreateOrder,
   orderForm,
@@ -29,8 +30,12 @@ export function ReviewOrderStep({
         </div>
       </div>
 
-      {createdOrderId ? (
-        <p className="successMessage">Created order {createdOrderId}.</p>
+      {createdOrder ? (
+        <p className="successMessage" role="status">
+          {createdOrder.id
+            ? `Created order ${createdOrder.id}.`
+            : "Order created successfully."}
+        </p>
       ) : null}
 
       <div className="reviewGrid">
@@ -73,7 +78,8 @@ export function ReviewOrderStep({
               <div key={item.id}>
                 <dt>Item {index + 1}</dt>
                 <dd>
-                  {item.title} - ${toNumber(item.amount).toFixed(2)}
+                  {item.title} — Owing: ${toNumber(item.amountOwing).toFixed(2)};
+                  paid: ${toNumber(item.amountPaid).toFixed(2)}
                 </dd>
               </div>
             ))}
@@ -85,7 +91,7 @@ export function ReviewOrderStep({
         <button className="secondaryButton" onClick={onBack} type="button">
           Back
         </button>
-        <button className="primaryButton" type="submit">
+        <button className="primaryButton" disabled={!!createdOrder} type="submit">
           Create Order
         </button>
       </div>

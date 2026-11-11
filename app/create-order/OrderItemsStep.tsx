@@ -112,15 +112,29 @@ export function OrderItemsStep({
               </label>
 
               <label className="field">
-                <span>Amount</span>
+                <span>Amount Owing</span>
                 <input
                   min="0"
                   required
                   step="0.01"
                   type="number"
-                  value={item.amount}
+                  value={item.amountOwing}
                   onChange={(event) =>
-                    updateOrderItem(item.id, "amount", event.target.value)
+                    updateOrderItem(item.id, "amountOwing", event.target.value)
+                  }
+                />
+              </label>
+
+              <label className="field">
+                <span>Amount Paid</span>
+                <input
+                  min="0"
+                  required
+                  step="0.01"
+                  type="number"
+                  value={item.amountPaid}
+                  onChange={(event) =>
+                    updateOrderItem(item.id, "amountPaid", event.target.value)
                   }
                 />
               </label>

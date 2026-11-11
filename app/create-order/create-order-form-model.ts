@@ -32,7 +32,8 @@ export type CreateOrderFormModel = {
 export type OrderItemFormModel = {
   id: string;
   title: string;
-  amount: string;
+  amountOwing: string;
+  amountPaid: string;
   inspirationPhotoUrl: string;
   unit: "in" | "cm";
   chest: string;
@@ -86,7 +87,8 @@ export function createInitialOrderItemFormModel(
   return {
     id,
     title: "",
-    amount: "",
+    amountOwing: "",
+    amountPaid: "0",
     inspirationPhotoUrl: "",
     unit: "in",
     chest: "",

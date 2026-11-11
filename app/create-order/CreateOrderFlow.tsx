@@ -1,8 +1,10 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
-import { Customer } from "@/domain/customer";
-import type { OrderItems } from "@/domain/order-item";
+import { Business } from "@/domain/business";
+import type { Customer } from "@/domain/customer";
+import type { Order } from "@/domain/order";
+import { OrderItem, type OrderItems } from "@/domain/order-item";
 import { CreateOrderStepper } from "./CreateOrderStepper";
 import { CustomerStep } from "./CustomerStep";
 import { OrderDetailsStep } from "./OrderDetailsStep";
@@ -16,14 +18,19 @@ import {
 } from "./create-order-form-model";
 import { createOrderItemFormForCustomer, toNumber } from "./create-order-mappers";
 
-export function CreateOrderFlow() {
+export function CreateOrderFlow({
+  businessDetails,
+}: {
+  businessDetails: Business.ConstructorArgs;
+}) {
+  const [business] = useState(() => new Business(businessDetails));
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [activeStep, setActiveStep] =
     useState<CreateOrderStepper.Step>("customer");
   const [orderForm, setOrderForm] = useState<CreateOrderFormModel>(
     createInitialOrderFormModel,
   );
-  const [createdOrderId, setCreatedOrderId] = useState("");
+  const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
   const selectedCustomer = useMemo(
     () => customers.find((customer) => customer.id === orderForm.customerId),
     [customers, orderForm.customerId],
@@ -38,12 +45,14 @@ export function CreateOrderFlow() {
       return;
     }
 
+    setCreatedOrder(null);
     setOrderForm((current) =>
       CreateOrderFlow.createOrderFormForCustomer(customer, current),
     );
   }
 
   function saveOrderDetails(detailsForm: OrderDetailsStep.FormModel) {
+    setCreatedOrder(null);
     setOrderForm((current) => ({
       ...current,
       notes: detailsForm.notes,
@@ -58,6 +67,7 @@ export function CreateOrderFlow() {
   }
 
   function saveOrderItems(items: OrderItemFormModel[]) {
+    setCreatedOrder(null);
     setOrderForm((current) => ({
       ...current,
       items,
@@ -83,7 +93,7 @@ export function CreateOrderFlow() {
   }
 
   function createCustomer(customerForm: CustomerFormModel) {
-    const customer = new Customer({
+    const customer = business.createCustomer({
       id: crypto.randomUUID(),
       name: customerForm.name,
       phoneNumber: customerForm.phoneNumber,
@@ -100,9 +110,9 @@ export function CreateOrderFlow() {
       ),
       bodyMeasurements:
         CreateOrderFlow.createMeasurementsFromCustomerForm(customerForm),
-      orders: [],
     });
 
+    setCreatedOrder(null);
     setCustomers((current) => [...current, customer]);
     setOrderForm((current) =>
       CreateOrderFlow.createOrderFormForCustomer(customer, current),
@@ -130,7 +140,9 @@ export function CreateOrderFlow() {
       return {
         id: crypto.randomUUID(),
         title: item.title,
-        amount: toNumber(item.amount),
+        status: OrderItem.Status.Created,
+        amountOwing: toNumber(item.amountOwing),
+        amountPaid: toNumber(item.amountPaid),
         measurements: CreateOrderFlow.createMeasurementsFromOrderItem(item),
         inspirationPhotos: item.inspirationPhotoUrl
           ? [
@@ -143,8 +155,8 @@ export function CreateOrderFlow() {
       };
     }) as OrderItems;
 
-    const order = selectedCustomer.createOrder({
-      id: `ORD-${Date.now()}`,
+    const order = business.createOrder({
+      customerId: selectedCustomer.id,
       notes: orderForm.notes || undefined,
       items: orderItems,
       expectedDueDate: new Date(`${orderForm.expectedDueDate}T12:00:00`),
@@ -157,8 +169,7 @@ export function CreateOrderFlow() {
       ),
     });
 
-    setCustomers((current) => [...current]);
-    setCreatedOrderId(order.id);
+    setCreatedOrder(order);
   }
 
   return (
@@ -199,7 +210,7 @@ export function CreateOrderFlow() {
 
       {activeStep === "review" ? (
         <ReviewOrderStep
-          createdOrderId={createdOrderId}
+          createdOrder={createdOrder}
           onBack={() => goToPreviousStep("review")}
           onCreateOrder={createOrder}
           orderForm={orderForm}
@@ -301,7 +312,8 @@ export namespace CreateOrderFlow {
       items: currentForm.items.map((item) => ({
         ...createOrderItemFormForCustomer(item.id, customer),
         title: item.title,
-        amount: item.amount,
+        amountOwing: item.amountOwing,
+        amountPaid: item.amountPaid,
         inspirationPhotoUrl: item.inspirationPhotoUrl,
       })),
     };
