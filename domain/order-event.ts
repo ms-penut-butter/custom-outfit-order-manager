@@ -1,6 +1,6 @@
 import type { Address } from "./address";
 import type { OrderItems } from "./order-item";
-import type { OrderStatus } from "./order-status";
+import type { Order } from "./order";
 import type { PaymentMethod, PaymentStatus } from "./payment";
 
 export type OrderEventBase<TType extends string> = {
@@ -13,7 +13,7 @@ export type OrderCreated = OrderEventBase<"order_created"> & {
   readonly notes?: string;
   readonly items: OrderItems;
   readonly expectedDueDate: Date;
-  readonly status: OrderStatus;
+  readonly status: Order.Status;
   readonly paymentStatus: PaymentStatus;
   readonly paymentMethod?: PaymentMethod;
   readonly deliveryAddress: Address;
@@ -34,8 +34,8 @@ export type OrderItemsUpdated = OrderEventBase<"order_items_updated"> & {
   readonly items: OrderItems;
 };
 
-export type OrderStatusUpdated = OrderEventBase<"order_status_updated"> & {
-  readonly status: OrderStatus;
+export type OrderCancelled = OrderEventBase<"order_cancelled"> & {
+  readonly items: OrderItems;
 };
 
 export type OrderPaymentStatusUpdated =
@@ -47,5 +47,5 @@ export type OrderEvent =
   | OrderCreated
   | OrderUpdated
   | OrderItemsUpdated
-  | OrderStatusUpdated
+  | OrderCancelled
   | OrderPaymentStatusUpdated;

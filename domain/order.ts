@@ -1,34 +1,34 @@
 import type { Address } from "./address";
 import type { OrderUpdateFields } from "./order-event";
-import type { OrderItems } from "./order-item";
-import { OrderStatus } from "./order-status";
+import { OrderItem, type OrderItems } from "./order-item";
 import type { PaymentMethod } from "./payment";
 import { PaymentStatus } from "./payment";
 import type { OrderEvent } from "./order-event";
 
-export { OrderStatus } from "./order-status";
 export { PaymentStatus } from "./payment";
 export type { PaymentMethod } from "./payment";
 
 export class Order {
-  readonly id: string;
+  readonly id: string | undefined;
   readonly customerId: string;
   notes?: string;
   items: Order.Items;
   expectedDueDate: Date;
-  status: OrderStatus;
   paymentStatus: PaymentStatus;
   paymentMethod?: PaymentMethod;
   deliveryAddress: Address;
   history: OrderEvent[];
 
   constructor(props: Order.ConstructorArgs) {
-    this.id = props.id;
+    if (props.items.length === 0) {
+      throw new Error("An order must have at least one order item.");
+    }
+
+    this.id = props.id ?? undefined;
     this.customerId = props.customerId;
     this.notes = props.notes;
     this.items = props.items;
     this.expectedDueDate = props.expectedDueDate;
-    this.status = props.status;
     this.paymentStatus = props.paymentStatus;
     this.paymentMethod = props.paymentMethod;
     this.deliveryAddress = props.deliveryAddress;
@@ -36,27 +36,59 @@ export class Order {
   }
 
   get totalAmount() {
-    return this.items.reduce((total, item) => total + item.amount, 0);
+    return this.items.reduce((total, item) => total + item.amountOwing, 0);
+  }
+
+  get status(): Order.Status {
+    if (this.items.every(item => item.status === OrderItem.Status.Cancelled)) {
+      return Order.Status.Cancelled;
+    }
+
+    if (this.items.every(item => item.status === OrderItem.Status.Delivered)) {
+      return Order.Status.Delivered;
+    }
+
+    if (this.items.every(item => item.status === OrderItem.Status.InDelivery)) {
+      return Order.Status.InDelivery;
+    }
+
+    if (this.items.every(item => item.status === OrderItem.Status.ReadyForDelivery)) {
+      return Order.Status.ReadyForDelivery;
+    }
+
+    if (this.items.every(item => item.status === OrderItem.Status.Created)) {
+      return Order.Status.Created;
+    }
+
+    return Order.Status.InProgress
   }
 
   get isCompleted() {
-    return this.status === OrderStatus.Delivered;
+    return this.status === Order.Status.Delivered;
   }
 
   get isCancelled() {
-    return this.status === OrderStatus.Cancelled;
+    return this.status === Order.Status.Cancelled;
   }
 
   cancel(props: Order.CancelArgs = {}) {
     if (this.isCancelled) {
-      throw new Error(`Order ${this.id} is already cancelled.`);
+      throw new Error(`Order is already cancelled.`);
     }
 
     if (this.isCompleted) {
-      throw new Error(`Delivered order ${this.id} cannot be cancelled.`);
+      throw new Error(`Delivered order cannot be cancelled.`);
     }
 
-    this.updateStatus({ status: OrderStatus.Cancelled, occurredAt: props.occurredAt });
+    this.items = this.items.map((item) => ({
+      ...item,
+      status: OrderItem.Status.Cancelled,
+    })) as Order.Items;
+    this.history.push({
+      type: "order_cancelled",
+      occurredAt: props.occurredAt ?? new Date(),
+      items: this.items,
+    });
   }
 
   update(props: Order.UpdateArgs) {
@@ -104,17 +136,6 @@ export class Order {
     );
   }
 
-  updateStatus(props: Order.UpdateStatusArgs) {
-    this.status = props.status;
-    this.history.push(
-      {
-        type: "order_status_updated",
-        occurredAt: props.occurredAt ?? new Date(),
-        status: props.status,
-      },
-    );
-  }
-
   updatePaymentStatus(props: Order.UpdatePaymentStatusArgs) {
     this.paymentStatus = props.paymentStatus;
     this.history.push(
@@ -128,15 +149,34 @@ export class Order {
 }
 
 export namespace Order {
+  export enum Status {
+    Created = "created",
+    InProgress = "in_progress",
+    ReadyForDelivery = "ready_for_delivery",
+    InDelivery = "in_delivery",
+    Delivered = "delivered",
+    Cancelled = "cancelled",
+  }
+
   export type Items = OrderItems;
 
-  export type ConstructorArgs = {
-    id: string;
+  export type CreateArgs = {
     customerId: string;
     notes?: string;
     items: Items;
     expectedDueDate: Date;
-    status: OrderStatus;
+    paymentStatus?: PaymentStatus;
+    paymentMethod?: PaymentMethod;
+    deliveryAddress: Address;
+    occurredAt?: Date;
+  };
+
+  export type ConstructorArgs = {
+    id?: string;
+    customerId: string;
+    notes?: string;
+    items: Items;
+    expectedDueDate: Date;
     paymentStatus: PaymentStatus;
     paymentMethod?: PaymentMethod;
     deliveryAddress: Address;
@@ -155,11 +195,6 @@ export namespace Order {
   export type UpdateItemsArgs = {
     occurredAt?: Date;
     items: Items;
-  };
-
-  export type UpdateStatusArgs = {
-    occurredAt?: Date;
-    status: OrderStatus;
   };
 
   export type UpdatePaymentStatusArgs = {
